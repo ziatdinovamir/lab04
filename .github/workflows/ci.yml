@@ -4,15 +4,34 @@ jobs:
   linux:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - run: sudo apt-get install -y cmake
-    - run: for d in formatter_lib formatter_ex_lib hello_world solver; do cd $d && cmake -H. -B_build && cmake --build _build && cd ..; done
+    - uses: actions/checkout@v4
+    - name: Install CMake
+      run: sudo apt-get install -y cmake
+    - name: Build all components
+      run: |
+        cd $GITHUB_WORKSPACE
+        for d in formatter_lib formatter_ex_lib hello_world solver; do
+          if [ -d "$d" ]; then
+            cd $d && cmake -H. -B_build && cmake --build _build && cd ..
+          else
+            echo "Warning: Directory $d not found"
+          fi
+        done
   windows:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
-    - run: |
-        cd formatter_lib; cmake -H. -B_build; cmake --build _build
-        cd ../formatter_ex_lib; cmake -H. -B_build; cmake --build _build
-        cd ../hello_world; cmake -H. -B_build; cmake --build _build
-        cd ../solver; cmake -H. -B_build; cmake --build _build
+    - uses: actions/checkout@v4
+    - name: Build all components
+      run: |
+        cd $env:GITHUB_WORKSPACE
+        $components = @("formatter_lib", "formatter_ex_lib", "hello_world", "solver")
+        foreach ($d in $components) {
+          if (Test-Path $d) {
+            cd $d
+            cmake -H. -B_build
+            cmake --build _build
+            cd ..
+          } else {
+            Write-Host "Warning: Directory $d not found"
+          }
+        }
