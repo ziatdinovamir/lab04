@@ -1,6 +1,46 @@
+version: 1.0.{build}
 image: Visual Studio 2019
 
+platform:
+  - x64
+  - Win32
+
+configuration:
+  - Debug
+  - Release
+
+matrix:
+  fast_finish: true
+
 build_script:
-  - cmake -H. -B_build -DCMAKE_INSTALL_PREFIX=_install
-  - cmake --build _build
-  - cmake --build _build --target install
+  # Сборка formatter_lib
+  - cd formatter_lib
+  - mkdir build
+  - cd build
+  - cmake ..
+  - cmake --build . --config %CONFIGURATION%
+  - cd ..\..
+
+  # Сборка formatter_ex_lib
+  - cd formatter_ex_lib
+  - mkdir build
+  - cd build
+  - cmake ..
+  - cmake --build . --config %CONFIGURATION%
+  - cd ..\..
+
+  # Сборка hello_world
+  - cd hello_world
+  - mkdir build
+  - cd build
+  - cmake ..
+  - cmake --build . --config %CONFIGURATION%
+  - cd ..\..
+
+  # Сборка solver
+  - cd solver
+  - mkdir build
+  - cd build
+  - cmake ..
+  - cmake --build . --config %CONFIGURATION%
+  - cd ..\..
