@@ -1,54 +1,43 @@
 name: CI
-on: [push]
-jobs:
-  linux:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Install CMake
-      run: sudo apt-get install -y cmake
-    - name: Build formatter_lib
-      run: cd formatter_lib && mkdir -p build && cd build && cmake .. && cmake --build . && cd ../..
-    - name: Build formatter_ex_lib
-      run: cd formatter_ex_lib && mkdir -p build && cd build && cmake .. && cmake --build . && cd ../..
-    - name: Build hello_world
-      run: cd hello_world && mkdir -p build && cd build && cmake .. && cmake --build . && cd ../..
-    - name: Build solver
-      run: cd solver && mkdir -p build && cd build && cmake .. && cmake --build . && cd ../..
 
-  windows:
-    runs-on: windows-latest
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        build_type: [Debug, Release]
+
+    runs-on: ${{ matrix.os }}
+
     steps:
     - uses: actions/checkout@v4
-    - name: Build formatter_lib
+
+    - name: Configure CMake
+      run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+    - name: Build
+      run: cmake --build build --config ${{ matrix.build_type }}
+
+    - name: Test hello_world
       run: |
-        cd formatter_lib
-        mkdir build
-        cd build
-        cmake ..
-        cmake --build . --config Release
-        cd ../..
-    - name: Build formatter_ex_lib
+        if [ "${{ matrix.os }}" = "windows-latest" ]; then
+          ./build/hello_world/${{ matrix.build_type }}/hello_world.exe
+        else
+          ./build/hello_world/hello_world
+        fi
+      shell: bash
+
+    - name: Test solver
       run: |
-        cd formatter_ex_lib
-        mkdir build
-        cd build
-        cmake ..
-        cmake --build . --config Release
-        cd ../..
-    - name: Build hello_world
-      run: |
-        cd hello_world
-        mkdir build
-        cd build
-        cmake ..
-        cmake --build . --config Release
-        cd ../..
-    - name: Build solver
-      run: |
-        cd solver
-        mkdir build
-        cd build
-        cmake ..
-        cmake --build . --config Release
-        cd ../..
+        if [ "${{ matrix.os }}" = "windows-latest" ]; then
+          echo "1 -3 2" | ./build/solver/${{ matrix.build_type }}/solver.exe
+        else
+          echo "1 -3 2" | ./build/solver/solver
+        fi
+      shell: bash
