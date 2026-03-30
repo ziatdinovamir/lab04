@@ -11,8 +11,6 @@ include_directories(
 )
 
 add_subdirectory(solver_lib)
-add_subdirectory(../formatter_lib formatter_lib)
-add_subdirectory(../formatter_ex_lib formatter_ex_lib)
 
 add_executable(solver equation.cpp)
 target_link_libraries(solver solver_lib formatter formatter_ex)
